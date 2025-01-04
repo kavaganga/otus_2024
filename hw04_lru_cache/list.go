@@ -101,10 +101,13 @@ func (l *list) MoveToFront(i *ListItem) {
 	}
 	if i.Next != nil {
 		i.Next.Prev = i.Prev
-
 	}
+
 	if i.Prev != nil {
 		i.Prev.Next = i.Next
+		if l.back == i {
+			l.back = i.Prev
+		}
 	}
 
 	l.front.Prev = i
