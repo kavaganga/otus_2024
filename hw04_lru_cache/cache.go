@@ -11,7 +11,6 @@ type Cache interface {
 }
 
 type lruCache struct {
-	//Cache // Remove me after realization.
 	mu       sync.Mutex
 	capacity int
 	queue    List
@@ -69,7 +68,6 @@ func (c *lruCache) Get(key Key) (interface{}, bool) {
 		c.queue.MoveToFront(item)
 
 		return item.Value, ok
-	} else {
-		return nil, false
 	}
+	return nil, false
 }

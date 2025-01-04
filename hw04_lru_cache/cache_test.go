@@ -71,13 +71,10 @@ func TestCache(t *testing.T) {
 		item, ok = c.Get("bbb")
 		require.False(t, ok)
 		require.Nil(t, item)
-
 	})
 }
 
-func TestCacheMultithreading(t *testing.T) {
-	//t.Skip() // Remove me if task with asterisk completed.
-
+func TestCacheMultithreading(_ *testing.T) {
 	c := NewCache(10)
 	wg := &sync.WaitGroup{}
 	wg.Add(2)
