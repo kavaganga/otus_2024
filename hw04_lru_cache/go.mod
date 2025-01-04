@@ -1,4 +1,4 @@
-module github.com/fixme_my_friend/hw04_lru_cache
+module github.com/kavaganga/otus_2024/hw04_lru_cache
 
 go 1.22
 
