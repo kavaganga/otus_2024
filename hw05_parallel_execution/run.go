@@ -46,7 +46,7 @@ func Run(tasks []Task, n, m int) error {
 	// Handle errors
 	go func(cancel context.CancelFunc, maxErrors int, status *bool) {
 		errCount := 0
-		for _ = range chErrors {
+		for range chErrors {
 			errCount++
 			if errCount >= maxErrors-1 {
 				*status = false
