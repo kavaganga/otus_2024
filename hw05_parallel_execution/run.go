@@ -38,7 +38,6 @@ func Run(tasks []Task, n, m int) error {
 							chanErrors <- struct{}{}
 						}
 					}
-				default:
 				}
 			}
 		}(ctx, &wg, chTasks, chErrors)
