@@ -12,33 +12,18 @@ var ErrErrorsLimitExceeded = errors.New("errors limit exceeded")
 type Task func() error
 
 func Run(tasks []Task, n, m int) error {
-	var status int32
-	chTasks := make(chan Task)
-	chErrors := make(chan struct{}, m)
-	defer close(chErrors)
-
+	var countErrors int32
+	chTasks := make(chan Task, len(tasks))
+	atomic.StoreInt32(&countErrors, int32(m))
 	wg := sync.WaitGroup{}
 
 	ctx, cancel := context.WithCancel(context.Background())
 
 	defer cancel()
-	atomic.StoreInt32(&status, 1)
-	// Handle errors
-	go func(cancel context.CancelFunc, maxErrors int, status *int32) {
-		errCount := 0
-		for range chErrors {
-			errCount++
-			if errCount >= maxErrors-1 {
-				atomic.AddInt32(status, -1)
-				cancel()
-				return
-			}
-		}
-	}(cancel, m, &status)
 
 	for w := 0; w < n; w++ {
 		wg.Add(1)
-		go func(ctx context.Context, wg *sync.WaitGroup, tasks <-chan Task, chanErrors chan<- struct{}) {
+		go func(ctx context.Context, wg *sync.WaitGroup, tasks <-chan Task, cancel context.CancelFunc) {
 			defer wg.Done()
 			for {
 				select {
@@ -49,24 +34,28 @@ func Run(tasks []Task, n, m int) error {
 						return
 					} else {
 						if err := task(); err != nil {
-							chanErrors <- struct{}{}
+							atomic.AddInt32(&countErrors, -1)
+							if atomic.LoadInt32(&countErrors) < 0 {
+								cancel()
+								return
+							}
 						}
 					}
 				}
 			}
-		}(ctx, &wg, chTasks, chErrors)
+		}(ctx, &wg, chTasks, cancel)
 	}
 
 	for _, task := range tasks {
-		if atomic.LoadInt32(&status) != 1 {
+		if atomic.LoadInt32(&countErrors) < 0 {
+			cancel()
 			break
 		}
 		chTasks <- task
 	}
 	close(chTasks)
 	wg.Wait()
-
-	if atomic.LoadInt32(&status) != 1 {
+	if countErrors < 0 {
 		return ErrErrorsLimitExceeded
 	}
 	return nil
