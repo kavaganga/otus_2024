@@ -1,7 +1,6 @@
 package hw05parallelexecution
 
 import (
-	"context"
 	"errors"
 	"sync"
 	"sync/atomic"
@@ -17,18 +16,12 @@ func Run(tasks []Task, n, m int) error {
 	atomic.StoreInt32(&countErrors, int32(m))
 	wg := sync.WaitGroup{}
 
-	ctx, cancel := context.WithCancel(context.Background())
-
-	defer cancel()
-
-	for w := 0; w < n; w++ {
+	for i := 0; i < n; i++ {
 		wg.Add(1)
-		go func(ctx context.Context, wg *sync.WaitGroup, tasks <-chan Task, cancel context.CancelFunc) {
+		go func(wg *sync.WaitGroup, tasks <-chan Task) {
 			defer wg.Done()
 			for {
 				select {
-				case <-ctx.Done():
-					return
 				case task, ok := <-tasks:
 					if !ok {
 						return
@@ -36,19 +29,17 @@ func Run(tasks []Task, n, m int) error {
 						if err := task(); err != nil {
 							atomic.AddInt32(&countErrors, -1)
 							if atomic.LoadInt32(&countErrors) < 0 {
-								cancel()
 								return
 							}
 						}
 					}
 				}
 			}
-		}(ctx, &wg, chTasks, cancel)
+		}(&wg, chTasks)
 	}
 
 	for _, task := range tasks {
 		if atomic.LoadInt32(&countErrors) < 0 {
-			cancel()
 			break
 		}
 		chTasks <- task
