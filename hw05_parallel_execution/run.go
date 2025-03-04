@@ -12,7 +12,7 @@ type Task func() error
 
 func Run(tasks []Task, n, m int) error {
 	var countErrors int32
-	chTasks := make(chan Task, len(tasks))
+	chTasks := make(chan Task)
 	atomic.StoreInt32(&countErrors, int32(m))
 	wg := sync.WaitGroup{}
 
@@ -21,11 +21,11 @@ func Run(tasks []Task, n, m int) error {
 		go func(wg *sync.WaitGroup, tasks <-chan Task) {
 			defer wg.Done()
 			for task := range tasks {
+				if atomic.LoadInt32(&countErrors) < 0 {
+					return
+				}
 				if err := task(); err != nil {
 					atomic.AddInt32(&countErrors, -1)
-					if atomic.LoadInt32(&countErrors) < 0 {
-						return
-					}
 				}
 			}
 		}(&wg, chTasks)
