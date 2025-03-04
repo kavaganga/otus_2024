@@ -20,18 +20,11 @@ func Run(tasks []Task, n, m int) error {
 		wg.Add(1)
 		go func(wg *sync.WaitGroup, tasks <-chan Task) {
 			defer wg.Done()
-			for {
-				select {
-				case task, ok := <-tasks:
-					if !ok {
+			for task := range tasks {
+				if err := task(); err != nil {
+					atomic.AddInt32(&countErrors, -1)
+					if atomic.LoadInt32(&countErrors) < 0 {
 						return
-					} else {
-						if err := task(); err != nil {
-							atomic.AddInt32(&countErrors, -1)
-							if atomic.LoadInt32(&countErrors) < 0 {
-								return
-							}
-						}
 					}
 				}
 			}
