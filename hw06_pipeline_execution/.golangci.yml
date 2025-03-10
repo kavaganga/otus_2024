@@ -1,0 +1,98 @@
+run:
+  tests: true
+  build-tags:
+    - bench
+    - !bench
+
+linters-settings:
+  funlen:
+    lines: 150
+    statements: 80
+  depguard:
+    # Rules to apply.
+    #
+    # Variables:
+    # - File Variables
+    #   you can still use and exclamation mark ! in front of a variable to say not to use it.
+    #   Example !$test will match any file that is not a go test file.
+    #
+    #   `$all` - matches all go files
+    #   `$test` - matches all go test files
+    #
+    # - Package Variables
+    #
+    #  `$gostd` - matches all of go's standard library (Pulled from `GOROOT`)
+    #
+    # Default: Only allow $gostd in all files.
+    rules:
+      # Name of a rule.
+      main:
+        # Used to determine the package matching priority.
+        # There are three different modes: `original`, `strict`, and `lax`.
+        # Default: "original"
+        list-mode: lax
+        # List of file globs that will match this list of settings to compare against.
+        # Default: $all
+        files:
+          - "!**/*_a _file.go"
+        # List of allowed packages.
+        allow:
+          - $gostd
+          - github.com/OpenPeeDeeP
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - errcheck
+        - dupl
+        - gocyclo
+        - gosec
+
+linters:
+  disable-all: true
+  enable:
+    - asciicheck
+    - depguard
+    - dogsled
+    - dupl
+    - bodyclose
+    - durationcheck
+    - errorlint
+    - exhaustive
+    # - exportloopref
+    - funlen
+    - gci
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
+    - gofmt
+    - gofumpt
+    - goheader
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - importas
+    - ineffassign
+    - lll
+    - makezero
+    - misspell
+    - nestif
+    - nilerr
+    - noctx
+    - nolintlint
+    - prealloc
+    - predeclared
+    - revive
+    - staticcheck
+    - stylecheck
+    - tagliatelle
+    - thelper
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - whitespace
